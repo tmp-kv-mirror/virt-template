@@ -1,18 +1,11 @@
 # Scheduled Renovate workflow for dependency updates.
 #
-# Uses two tokens to separate concerns:
-#   - RENOVATE_TOKEN (org member): used for GitHub API calls (reading
-#     the repo, creating PRs). The org member appears as PR creator.
-#   - RENOVATE_FORK_TOKEN (bot account): used to fork the repo and
-#     push update branches. The bot owns the fork. Git commits show
-#     "Renovate Bot" as author (via gitAuthor in the config).
+# Uses the built-in GITHUB_TOKEN for GitHub API calls and branch
+# creation. Renovate creates temporary branches directly in this
+# repo (one per update) and opens PRs against the target branch.
 #
-# Required repository secrets (Settings > Secrets and variables > Actions):
-#   RENOVATE_TOKEN      - PAT from an org member (classic with
-#                         public_repo scope, or fine-grained with
-#                         Pull requests R/W scoped to this repo).
-#   RENOVATE_FORK_TOKEN - PAT from the bot account (classic with
-#                         public_repo and workflow scopes).
+# No additional secrets are required — GITHUB_TOKEN is automatically
+# provided by GitHub Actions with the permissions declared below.
 
 name: Renovate
 
@@ -20,6 +13,10 @@ on:
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   renovate:
@@ -32,9 +29,8 @@ jobs:
         uses: renovatebot/github-action@v46.1.16
         with:
           configurationFile: .github/renovate-config.json
-          token: ${{ secrets.RENOVATE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           LOG_LEVEL: info
           RENOVATE_REPOSITORIES: ${{ github.repository }}
-          RENOVATE_FORK_TOKEN: ${{ secrets.RENOVATE_FORK_TOKEN }}
           RENOVATE_ALLOWED_POST_UPGRADE_COMMANDS: '["make vendor", "make generate", "make manifests", "make fmt", "make vet"]'
