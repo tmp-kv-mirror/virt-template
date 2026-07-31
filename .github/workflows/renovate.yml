@@ -17,6 +17,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  workflows: write
 
 jobs:
   renovate:
@@ -31,6 +32,6 @@ jobs:
           configurationFile: .github/renovate-config.json
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          LOG_LEVEL: debug
+          LOG_LEVEL: info
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_ALLOWED_POST_UPGRADE_COMMANDS: '["make vendor", "make generate", "make manifests", "make fmt", "make vet"]'
